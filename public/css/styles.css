@@ -1,0 +1,16 @@
+body {
+  background:#000;
+}
+
+#content {
+  text-align:center;
+  width:600px;
+  margin:0 auto;
+  padding:25px;
+  background:#FFF;
+}
+
+canvas {
+  border:solid #000 1px;
+  cursor:pointer;
+}
