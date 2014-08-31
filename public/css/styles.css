@@ -4,13 +4,28 @@ body {
 
 #content {
   text-align:center;
-  width:600px;
+  width:700px;
   margin:0 auto;
   padding:25px;
   background:#FFF;
+  overflow:hidden;
 }
 
-canvas {
+#canvasContainer {
+  position:relative;
+  float:left;
+  width:500px;
+  min-height:600px;
+}
+
+.paintBoard {
   border:solid #000 1px;
   cursor:pointer;
+  position:absolute;
+  left:0;
+  top:0;
+}
+
+.layerList {
+  float:right;
 }

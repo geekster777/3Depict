@@ -16,7 +16,7 @@ Element.prototype.screenOffset = function () {
 };
 
 function drawLine(startX, startY, endX, endY) {
-  var ctx = document.getElementById('paintBoard').getContext('2d');
+  var ctx = document.getElementById('foreground').getContext('2d');
 
   //starts the mouse in the last position
   ctx.beginPath();
@@ -31,7 +31,7 @@ function drawLine(startX, startY, endX, endY) {
 window.onload = function() {
 
   //initializes some useful variables
-  var paintBoard = document.getElementById('paintBoard');
+  var paintBoard = document.getElementById('foreground');
   var body = document.getElementsByTagName('body')[0];
   var dragging = 0;
   var posX=0, posY=0;
