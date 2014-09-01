@@ -1,3 +1,6 @@
+var dragging = 0;
+var posX=0, posY=0;
+
 //Gets the offset of an element relative to the top left corner of the screen
 Element.prototype.screenOffset = function () {
   var x = this.offsetLeft - window.pageXOffset;
@@ -27,52 +30,80 @@ function drawLine(startX, startY, endX, endY) {
   ctx.stroke();
 }
 
-//initializes the whiteboard when the window loads
-window.onload = function() {
-
-  //initializes some useful variables
-  var paintBoard = document.getElementById('foreground');
-  var body = document.getElementsByTagName('body')[0];
-  var dragging = 0;
-  var posX=0, posY=0;
+function addLayer() {
+  var size = 500;
   
-  //toggles whether or not you are dragging the mouse
-  paintBoard.onmousedown = function(e) {
-    dragging = 1;
+  var oldFg = $('#foreground');
+  oldFg.attr('id', 'background');
+  oldFg.on('mousedown', canvasClick);
+  oldFg.on('mousemove', canvasDrag);
 
-    //gets an updated position of the mouse
-    posX = e.clientX || e.pageX;
-    posY = e.clientY || e.pageY;
-    var offset = paintBoard.screenOffset();
-    posX -= offset.x;
-    posY -= offset.y;
+  var newBoard = $(document.createElement('canvas'));
+  newBoard.attr('id', 'foreground');
+  newBoard.attr('class', 'paintBoard');
+  newBoard.attr('height', size+'px');
+  newBoard.attr('width', size+'px');
+  newBoard.on('mousedown', canvasClick);
+  newBoard.on('mousemove', canvasDrag);
+  
+  $('#canvasContainer').prepend(newBoard);
 
-    var ctx = paintBoard.getContext('2d');
-    ctx.rect(posX,posY,1,1);
-    ctx.fill();
 
-  };
-  body.onmouseup = function() {
-    dragging = 0;
-  };
+  
+  var currSize = size;
 
-  //updates the canvas whenever the mouse moves
-  paintBoard.onmousemove = function(e) {
+  $('#canvasContainer').children('canvas').each( function() {
+    $(this).css('width', currSize+'px');
+    var layerOffset = (size-currSize)/2;
+    $(this).css('left', layerOffset+'px');
+    $(this).css('top', layerOffset+'px');
+    currSize = currSize * 0.9;
+  });
+}
 
-    //will not draw unless the mouse is down
-    if(!dragging)
-      return;
+//toggles whether or not you are dragging the mouse
+function canvasClick(e) {
+  dragging = 1;
+
+  //gets an updated position of the mouse
+  posX = e.clientX || e.pageX;
+  posY = e.clientY || e.pageY;
+  var offset = $('#foreground')[0].screenOffset();
+  posX -= offset.x;
+  posY -= offset.y;
+
+  var ctx = $('#foreground')[0].getContext('2d');
+  ctx.rect(posX,posY,1,1);
+  ctx.fill();
+}
+
+//updates the canvas whenever the mouse moves
+function canvasDrag(e) {
+
+  //will not draw unless the mouse is down
+  if(!dragging)
+    return;
    
-    var startX = posX;
-    var startY = posY;
+  var startX = posX;
+  var startY = posY;
  
-    //gets the current position of the mouse relative to the canvas
-    posX = e.clientX || e.pageX;
-    posY = e.clientY || e.pageY;
-    var offset = paintBoard.screenOffset();
-    posX -= offset.x;
-    posY -= offset.y;
+  //gets the current position of the mouse relative to the canvas
+  posX = e.clientX || e.pageX;
+  posY = e.clientY || e.pageY;
+  var offset = $('#foreground')[0].screenOffset();
+  posX -= offset.x;
+  posY -= offset.y;
     
-    drawLine(startX, startY, posX, posY);
-  };
-};
+  drawLine(startX, startY, posX, posY);
+}
+
+//initializes the whiteboard when the window loads
+$(function() {
+  
+  $('#addLayer').click(addLayer);
+
+  $('body').on('mouseup', function() {
+    dragging = 0;
+  });
+
+});
