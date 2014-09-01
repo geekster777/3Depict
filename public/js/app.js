@@ -1,6 +1,9 @@
 var dragging = 0;
 var posX=0, posY=0;
 
+//the size of the foreground element
+var size = 500;
+
 /* Adds a function to each element in the DOM to 
    compute the offset of an element relative to 
    the top leftcorner of the screen */
@@ -40,15 +43,13 @@ function drawLine(startX, startY, endX, endY) {
 }
 
 function addLayer() {
-  //the size of the foreground element
-  var size = 500;
   
   //resets the old foreground element to be a background element
   var oldFg = $('#foreground');
   oldFg.attr('id', 'background');
   oldFg.on('mousedown', canvasClick);
   oldFg.on('mousemove', canvasDrag);
-
+  
   //Creates and initializes a new canvas element
   var newBoard = $(document.createElement('canvas'));
   newBoard.attr('id', 'foreground');
@@ -57,23 +58,23 @@ function addLayer() {
   newBoard.attr('width', size+'px');
   newBoard.on('mousedown', canvasClick);
   newBoard.on('mousemove', canvasDrag);
+
+  var boardLabel = $(document.createElement('li'));
+  boardLabel.attr('class', 'boardLabel');
+  boardLabel.text('Label');
+  boardLabel.click(function() {
+    newBoard.remove();
+    boardLabel.remove();
+    refreshCanvasLocations();
+  });
+
+  $('.layerList').prepend(boardLabel);
   
   //adds the new canvas element to the beginning of the canvas group
   $('#canvasContainer').prepend(newBoard);
 
-  //puts all background elements farther into the background based on position
-  var currSize = size;
-  $('#canvasContainer').children('canvas').each( function() {
-    $(this).css('width', currSize+'px');
+  refreshCanvasLocations();
 
-    //centers the element based on its size
-    var layerOffset = (size-currSize)/2;
-    $(this).css('left', layerOffset+'px');
-    $(this).css('top', layerOffset+'px');
-
-    //sets the size to be smaller for the next element
-    currSize = currSize * 0.9;
-  });
 }
 
 //toggles whether or not you are dragging the mouse
@@ -115,8 +116,27 @@ function canvasDrag(e) {
   drawLine(startX, startY, posX, posY);
 }
 
+function refreshCanvasLocations() {
+  //puts all background elements farther into the background based on position
+  var currSize = size;
+  $('#canvasContainer').children('canvas').each( function() {
+    $(this).css('width', currSize+'px');
+
+    //centers the element based on its size
+    var layerOffset = (size-currSize)/2;
+    $(this).css('left', layerOffset+'px');
+    $(this).css('top', layerOffset+'px');
+
+    //sets the size to be smaller for the next element
+    currSize = currSize * 0.9;
+  });
+}
+
 //initializes the paint board when the window loads
 $(function() {
+
+  //$('.layerList').sortable();
+  $('.layerList').disableSelection();
   
   //adds a new layer when the addLayer button is clicked
   $('#addLayer').click(addLayer);

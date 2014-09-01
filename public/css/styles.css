@@ -29,4 +29,13 @@ body {
 
 .layerList {
   float:right;
+  width:150px;
+  background:#ddd;
+  padding:0;
+}
+
+.layerList li {
+  background:#fff;
+  border:#000 solid 1px;
+  list-style:none;
 }
