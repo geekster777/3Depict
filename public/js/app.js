@@ -59,6 +59,7 @@ function addLayer() {
   newBoard.on('mousedown', canvasClick);
   newBoard.on('mousemove', canvasDrag);
 
+  //initializes the corresponding label for the list
   var boardLabel = $(document.createElement('li'));
   boardLabel.attr('class', 'boardLabel');
   boardLabel.text('Label');
@@ -68,11 +69,34 @@ function addLayer() {
     refreshCanvasLocations();
   });
 
-  $('.layerList').prepend(boardLabel);
+  //Should be called whenever the label has changed its position in the list
+  boardLabel[0].positionChanged = function(position) {
+    
+    newBoard.remove();
+    
+    //checks if the canvas needs to be added to the beginning of the list 
+    if(position <= 0) {
+      $('#canvasContainer').prepend(newBoard);
+    }
+    else {
+      $('#canvasContainer canvas:nth-child('+position+')').after(newBoard);
+    }
+    
+    /*
+     * we have to refresh the positions of the canvas with a callback otherwise 
+     * transitions will not work. This is because css will think that the initial
+     * position is the updated position. By setting a timeout, the initial position will
+     * be registered, and then the updated location will be set, allowing for animations
+     */
+    setTimeout(refreshCanvasLocations, 0);
+  };
+
   
-  //adds the new canvas element to the beginning of the canvas group
+  //adds the new canvas and label elements to the beginning of their corresponding groups
+  $('.layerList').prepend(boardLabel);
   $('#canvasContainer').prepend(newBoard);
 
+  //updates the sizes of all canvas elements based on their locations.
   refreshCanvasLocations();
 
 }
@@ -135,7 +159,24 @@ function refreshCanvasLocations() {
 //initializes the paint board when the window loads
 $(function() {
 
-  //$('.layerList').sortable();
+  //makes the layer list sortable
+  $('.layerList').sortable({
+
+    //called whenever the selected element in the sortable list changes position
+    change:function(event, ui) {
+      
+      //gets the position of the label in the list
+      var position = ui.placeholder.index(); 
+
+      //accounts for the placeholder inserted into the list when using JQuery Sortable
+      if(position > ui.item.index()) {
+        position--;
+      }
+      
+      //tells the label to update the position of the canvas with it
+      ui.item[0].positionChanged(position);
+    }
+  });
   $('.layerList').disableSelection();
   
   //adds a new layer when the addLayer button is clicked
