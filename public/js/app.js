@@ -44,12 +44,6 @@ function drawLine(startX, startY, endX, endY) {
 
 function addLayer() {
   
-  //resets the old foreground element to be a background element
-  var oldFg = $('#foreground');
-  oldFg.attr('id', 'background');
-  oldFg.on('mousedown', canvasClick);
-  oldFg.on('mousemove', canvasDrag);
-  
   //Creates and initializes a new canvas element
   var newBoard = $(document.createElement('canvas'));
   newBoard.attr('id', 'foreground');
@@ -141,6 +135,21 @@ function canvasDrag(e) {
 }
 
 function refreshCanvasLocations() {
+  //resets the old foreground element to be a background element
+  var oldFg = $('#foreground');
+  var newFg = $('#canvasContainer canvas:first');
+
+  //switches the id and mouse events of the old foreground to the new foreground
+  if(!oldFg.is(newFg)) {
+    oldFg.attr('id', 'background');
+    oldFg.on('mousedown', null);
+    oldFg.on('mousemove', null);
+
+    newFg.attr('id', 'foreground');
+    newFg.on('mousedown', canvasClick);
+    newFg.on('mousemove', canvasDrag);
+  }
+
   //puts all background elements farther into the background based on position
   var currSize = size;
   $('#canvasContainer').children('canvas').each( function() {
