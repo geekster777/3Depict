@@ -1,5 +1,9 @@
 var dragging = 0;
-var posX=0, posY=0;
+var pos = {x:0, y:0};
+var drawColor = 'rgba(0,0,0,1)';
+var lineWidth = 1;
+var viewOffset = {x:0,y:0};
+var viewing = false;
 
 //the size of the foreground element
 var size = 500;
@@ -36,10 +40,19 @@ function drawLine(startX, startY, endX, endY) {
   var ctx = document.getElementById('foreground').getContext('2d');
 
   //draws the line, and gives it a width
+  ctx.lineWidth = lineWidth * 2;
+  ctx.fillStyle = drawColor;
+  ctx.strokeStyle = drawColor;
   ctx.beginPath();
   ctx.moveTo(startX,startY);
   ctx.lineTo(endX,endY);
   ctx.stroke();
+  
+  ctx.arc(startX, startY, lineWidth, 0, 2 * Math.PI, false);
+  ctx.fill();
+  
+  ctx.arc(endX, endY, lineWidth, 0, 2 * Math.PI, false);
+  ctx.fill();
 }
 
 function addLayer() {
@@ -50,8 +63,12 @@ function addLayer() {
   newBoard.attr('class', 'paintBoard');
   newBoard.attr('height', size+'px');
   newBoard.attr('width', size+'px');
-  newBoard.on('mousedown', canvasClick);
-  newBoard.on('mousemove', canvasDrag);
+
+  if(!viewing) {
+    newBoard.addClass('animate');
+    newBoard.on('mousedown', canvasClick);
+    newBoard.on('mousemove', canvasDrag);
+  }
 
   //initializes the corresponding label for the list
   var boardLabel = $(document.createElement('li'));
@@ -97,18 +114,18 @@ function addLayer() {
 
 //toggles whether or not you are dragging the mouse
 function canvasClick(e) {
-  dragging = 1;
+  dragging = true;
 
   //gets an updated position of the mouse
-  posX = e.clientX || e.pageX;
-  posY = e.clientY || e.pageY;
+  pos.x = e.clientX || e.pageX;
+  pos.y = e.clientY || e.pageY;
   var offset = $('#foreground')[0].screenOffset();
-  posX -= offset.x;
-  posY -= offset.y;
+  pos.x -= offset.x;
+  pos.y -= offset.y;
 
   //draws a rectangle in case the user wants to just draw dots
   var ctx = $('#foreground')[0].getContext('2d');
-  ctx.rect(posX,posY,1,1);
+  ctx.rect(pos.x,pos.y,1,1);
   ctx.fill();
 }
 
@@ -120,49 +137,69 @@ function canvasDrag(e) {
     return;
    
   //stores the starting coordinates
-  var startX = posX;
-  var startY = posY;
+  var startX = pos.x;
+  var startY = pos.y;
  
   //gets the current position of the mouse relative to the canvas
-  posX = e.clientX || e.pageX;
-  posY = e.clientY || e.pageY;
+  pos.x = e.clientX || e.pageX;
+  pos.y = e.clientY || e.pageY;
   var offset = $('#foreground')[0].screenOffset();
-  posX -= offset.x;
-  posY -= offset.y;
+  pos.x -= offset.x;
+  pos.y -= offset.y;
     
   //draws a line from the old coordinates to the new coordinates
-  drawLine(startX, startY, posX, posY);
+  drawLine(startX, startY, pos.x, pos.y);
 }
 
 function refreshCanvasLocations() {
   //resets the old foreground element to be a background element
-  var oldFg = $('#foreground');
+  var oldFg = $('#canvasContainer canvas');
   var newFg = $('#canvasContainer canvas:first');
+  oldFg.attr('id', 'background');
+  newFg.attr('id', 'foreground');
 
   //switches the id and mouse events of the old foreground to the new foreground
-  if(!oldFg.is(newFg)) {
-    oldFg.attr('id', 'background');
-    oldFg.on('mousedown', null);
-    oldFg.on('mousemove', null);
-
-    newFg.attr('id', 'foreground');
+  if(!viewing){//!oldFg.is(newFg)) {
+    oldFg.off('mousedown');
+    oldFg.off('mousemove');
+    
     newFg.on('mousedown', canvasClick);
     newFg.on('mousemove', canvasDrag);
   }
 
   //puts all background elements farther into the background based on position
   var currSize = size;
+  var zIndex = $('#canvasContainer').children('canvas').length;
   $('#canvasContainer').children('canvas').each( function() {
     $(this).css('width', currSize+'px');
+    
+    //calculates the padding to position the canvas
+    var layerOffset = (size-currSize)/2;
+    var positionOffset = {
+      x:(1-currSize/size)*viewOffset.x+layerOffset,
+      y:(1-currSize/size)*viewOffset.y+layerOffset
+    };
 
     //centers the element based on its size
-    var layerOffset = (size-currSize)/2;
-    $(this).css('left', layerOffset+'px');
-    $(this).css('top', layerOffset+'px');
+    $(this).css('z-index', zIndex);
+    $(this).css('left', positionOffset.x+'px');
+    $(this).css('top', positionOffset.y+'px');
 
     //sets the size to be smaller for the next element
     currSize = currSize * 0.9;
+    zIndex--;
   });
+}
+
+function viewDrag() {
+  if(dragging) {
+    viewOffset.x += 3*(mouseX-event.clientX);
+    viewOffset.y += 3*(mouseY-event.clientY);
+    refreshCanvasLocations();
+  }
+
+  mouseX = event.clientX;
+  mouseY = event.clientY;
 }
 
 //initializes the paint board when the window loads
@@ -170,6 +207,23 @@ $(function() {
 
   //makes the layer list sortable
   $('.layerList').sortable({
+    start:function(event, ui) {
+      if(viewing) {
+        $('body').off('mousemove');
+        if(!$('.paintBoard').hasClass('animate')) {
+          $('.paintBoard').addClass('animate');
+        }
+      }
+    },
+    
+    stop:function(event, ui) {
+      if(viewing) {
+        $('body').on('mousemove',viewDrag);
+        if($('.paintBoard').hasClass('animate')) {
+          $('.paintBoard').removeClass('animate');
+        }
+      }
+    },
 
     //called whenever the selected element in the sortable list changes position
     change:function(event, ui) {
@@ -186,14 +240,50 @@ $(function() {
       ui.item[0].positionChanged(position);
     }
   });
+
   $('.layerList').disableSelection();
   
   //adds a new layer when the addLayer button is clicked
   $('#addLayer').click(addLayer);
+
+  $('#toggleView').click(function() {
+    viewing = !viewing;
+
+    $('.paintBoard').toggleClass('animate');
+    
+    if(!viewing) {
+      $('#addLayer').prop('disabled',false);
+      $('#foreground').on('mouseclick', canvasClick);
+      $('#foreground').on('mousemove', canvasDrag);
+      $('body').off('mousemove');
+      $('body').off('mouseclick');
+      dragging=false;
+    }
+    else {    
+      $('#addLayer').prop('disabled',true);
+      $('#foreground').off('mouseclick');
+      $('#foreground').off('mousemove');
+      $('body').on('mousemove', viewDrag);
+      $('body').on('mousedown', function() {
+        dragging=true;
+      });
+    }
+  });
 
   //The mouse has stopped dragging any time it unclicks on the canvas
   $('body').on('mouseup', function() {
     dragging = 0;
   });
 
+  $('#colorPicker').spectrum({
+    change: function(color) {
+      drawColor = color.toHexString();
+    },
+    showInitial:true,
+    clickoutFiresChange:true
+  });
+  
+  $('#lineWidth').on('input', function() {
+    lineWidth = this.value;
+  });
 });

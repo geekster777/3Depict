@@ -1,9 +1,11 @@
 <html>
   <head>
-    <title>Hello world!</title>
+    <title>3Depict!</title>
+    <link href="css/spectrum.css" type="text/css" rel="stylesheet">
     <link href="css/styles.css" type="text/css" rel="stylesheet">
     <script src="js/jquery.min.js" type="text/javascript"></script>
     <script src="js/jquery-ui.min.js" type="text/javascript"></script>
+    <script src="js/spectrum.js" type="text/javascript"></script>
     <script src="js/app.js" type="text/javascript"></script>
   </head>
   <body>
@@ -11,6 +13,9 @@
       <h1>Welcome to 3Depict!</h1>
       <h2>Home of Three-Dimensional Depictions</h2>
       <button id="addLayer">Add layer</button>
+      <button id="toggleView">Toggle View Mode</button>
+      <input type="text" id="colorPicker" />
+      <input type="range" value="1" min="1" max="25" id="lineWidth" />
       <ul class="layerList">
       </ul>
       <div id="canvasContainer">
