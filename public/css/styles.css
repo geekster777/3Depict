@@ -1,21 +1,58 @@
+html {
+  height:100%;
+}
+
 body {
   background:#000;
+  padding:0;
+  margin:0;
+  height:100%;
+}
+
+header {
+  width:100%;
+  background:#333333;
+}
+
+header h1 {
+  color:#efefef;
+}
+
+header h2 {
+  color:#ffd900;
+  font-size:18px;
 }
 
 #content {
+  width:100%;
+  background:#FFF;
+}
+
+.inner {
   text-align:center;
-  width:700px;
+  max-width:700px;
   margin:0 auto;
   padding:25px;
-  background:#FFF;
   overflow:hidden;
+}
+
+.canvasEditor {
+  position:relative;
+  overflow:hidden;
+  padding:25px 0;
+}
+
+.canvasEditor > * {
+  z-index:1;
+  position:relative;
 }
 
 #canvasContainer {
   position:relative;
   float:left;
-  width:500px;
-  min-height:600px;
+  width:400px;
+  min-height:400px;
+  z-index:0;
 }
 
 .paintBoard {
@@ -33,12 +70,20 @@ body {
 .layerList {
   float:right;
   width:150px;
-  background:#ddd;
+  background:#424242;
   padding:0;
+  box-shadow:5px 5px 5px rgba(0,0,0,0.5);
 }
 
 .layerList li {
-  background:#fff;
+  background:#333;
   border:#000 solid 1px;
+  color:#FFF;
   list-style:none;
+}
+
+footer {
+  width:100%;
+  background:#333333;
+  color:#ffd900;
 }

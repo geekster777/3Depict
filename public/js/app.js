@@ -6,7 +6,7 @@ var viewOffset = {x:0,y:0};
 var viewing = false;
 
 //the size of the foreground element
-var size = 500;
+var size = 400;
 
 /* Adds a function to each element in the DOM to 
    compute the offset of an element relative to 
